@@ -28,9 +28,13 @@ This has been tested on Ubuntu 14.04 LTS with a Feitian PKI (FTCOS/PK-01C) smart
     
 5. Create a random key file and add it to a LUKS key slot
 
-    ```dd if=/dev/random of=~/key bs=1 count=256```
+    ```sudo touch /root/rootkey```
     
-    ```sudo cryptsetup luksAddKey /dev/sda2 ~/key```
+    ```sudo chmod 600 /root/rootkey```
+
+    ```sudo dd if=/dev/random of=/root/rootkey bs=1 count=256 #change to urandom if you can't wait```
+    
+    ```sudo cryptsetup luksAddKey /dev/sda2 /root/rootkey```
     
 6. Export the public key from smartcard
 
@@ -38,4 +42,22 @@ This has been tested on Ubuntu 14.04 LTS with a Feitian PKI (FTCOS/PK-01C) smart
 
 7. Encrypt key file using public key
 
-    ```openssl rsautl -encrypt -pubin -inkey public_key_rsa2048.pem  -in ~/key -out ~/key.enc```
+    ```sudo openssl rsautl -encrypt -pubin -inkey public_key_rsa2048.pem  -in /root/rootkey -out /root/rootkey.enc```
+    
+    ```sudo rm /root/rootkey```
+
+8. Edit crypttab. This change sends the encrypted key file as a param to the keyscript
+
+    This should be of the form: 
+    
+    ```mapped_device_name source_block_device key_file luks,keyscript=decrypt_opensc```
+    
+    For example:
+    
+    ```sda2_crypt UUID=d332ecc5-ce8b-4900-a04a-a79abd029d6d /root/rootkey.enc luks,keyscript=decrypt_opensc```
+
+9. Apply patch to cryptopensc hook and regenerate initramfs
+
+    ```sudo patch /usr/share/initramfs-tools/hooks/cryptopensc < cryptopensc.patch ```
+    
+    ```sudo update-initramfs -u```
