@@ -1,0 +1,14 @@
+53c53
+< copy_exec /usr/sbin/pcscd 
+---
+> copy_exec /usr/sbin/pcscd /sbin/pcscd
+55c55,56
+< cp /etc/reader.conf ${DESTDIR}/etc
+---
+> if [ -e /etc/reader.conf ] ; then cp /etc/reader.conf ${DESTDIR}/etc ; fi
+> cp /etc/libccid_Info.plist ${DESTDIR}/etc
+60a62,65
+> 
+> cp /lib/x86_64-linux-gnu/libpcsclite.so.1 ${DESTDIR}/lib
+> cp /lib/x86_64-linux-gnu/libusb-1.0.so.0 ${DESTDIR}/lib
+> cp /lib/x86_64-linux-gnu/libgcc_s.so.1 ${DESTDIR}/lib
