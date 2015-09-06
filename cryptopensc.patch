@@ -7,8 +7,10 @@
 ---
 > if [ -e /etc/reader.conf ] ; then cp /etc/reader.conf ${DESTDIR}/etc ; fi
 > cp /etc/libccid_Info.plist ${DESTDIR}/etc
-60a62,65
+60a62,67
 > 
 > cp /lib/x86_64-linux-gnu/libpcsclite.so.1 ${DESTDIR}/lib
 > cp /lib/x86_64-linux-gnu/libusb-1.0.so.0 ${DESTDIR}/lib
 > cp /lib/x86_64-linux-gnu/libgcc_s.so.1 ${DESTDIR}/lib
+> 
+> copy_exec /sbin/start-stop-daemon
