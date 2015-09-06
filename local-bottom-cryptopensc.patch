@@ -1,0 +1,8 @@
+27c27
+< # Start pcscd daemon nomrally.  If it was started in foregound, chances are
+---
+> # Stop pcscd daemon normally.  If it was started in foregound, chances are
+30c30
+< start-stop-daemon --stop --quiet --pidfile /var/run/pcscd.pid --name pcscd
+---
+> /sbin/start-stop-daemon --stop --quiet --name pcscd

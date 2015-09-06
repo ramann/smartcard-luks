@@ -60,4 +60,6 @@ This has been tested on Ubuntu 14.04 LTS with a Feitian PKI (FTCOS/PK-01C) smart
 
     ```sudo patch /usr/share/initramfs-tools/hooks/cryptopensc < cryptopensc.patch ```
     
+    ```sudo patch /usr/share/initramfs-tools/scripts/local-bottom/cryptopensc < local-bottom-cryptopensc.patch```
+
     ```sudo update-initramfs -u```
