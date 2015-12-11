@@ -1,6 +1,6 @@
 # opensc_luks
 ## How to use a PKCS#15-compliant smartcard to unlock a LUKS encrypted root
-This has been tested on Ubuntu 14.04 LTS with a Feitian PKI (FTCOS/PK-01C) smartcard and a generic USB smartcard reader.
+This has been tested on Ubuntu 14.04 LTS with a Feitian PKI (FTCOS/PK-01C) smartcard and a generic USB smartcard reader. Essential info for unlocking the partition was found here: https://blog.g3rt.nl/luks-smartcard-or-token.html. After many VM restarts I was able to put together the patches for the initramfs hook and script.
 
 ### The general steps:
 * Erase and initialize card
@@ -32,7 +32,7 @@ This has been tested on Ubuntu 14.04 LTS with a Feitian PKI (FTCOS/PK-01C) smart
     
     ```sudo chmod 600 /root/rootkey```
 
-    ```sudo dd if=/dev/random of=/root/rootkey bs=1 count=256 #change to urandom if you can't wait```
+    ```sudo dd if=/dev/random of=/root/rootkey bs=1 count=245 #change to urandom if you can't wait```
     
     ```sudo cryptsetup luksAddKey /dev/sda2 /root/rootkey```
     
