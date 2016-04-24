@@ -1,16 +1,21 @@
-53c53
-< copy_exec /usr/sbin/pcscd 
----
-> copy_exec /usr/sbin/pcscd /sbin/pcscd
-55c55,56
-< cp /etc/reader.conf ${DESTDIR}/etc
----
-> if [ -e /etc/reader.conf ] ; then cp /etc/reader.conf ${DESTDIR}/etc ; fi
-> cp /etc/libccid_Info.plist ${DESTDIR}/etc
-60a62,67
-> 
-> cp /lib/x86_64-linux-gnu/libpcsclite.so.1 ${DESTDIR}/lib
-> cp /lib/x86_64-linux-gnu/libusb-1.0.so.0 ${DESTDIR}/lib
-> cp /lib/x86_64-linux-gnu/libgcc_s.so.1 ${DESTDIR}/lib
-> 
-> copy_exec /sbin/start-stop-daemon
+--- cryptopensc.orig	2016-04-23 21:25:43.128000000 -0400
++++ cryptopensc.work	2016-04-23 21:41:37.280000000 -0400
+@@ -50,9 +50,16 @@ done
+ 
+ # Install pcscd daemon, drivers, conf file, and include libgcc as well since
+ # pcscd utilizes pthread_cancel
+-copy_exec /usr/sbin/pcscd
++copy_exec /usr/sbin/pcscd /sbin/pcscd
++
+ cp -r /usr/lib/pcsc ${DESTDIR}/usr/lib
+-cp /etc/reader.conf ${DESTDIR}/etc
++if [ -e /etc/reader.conf ] ; then cp /etc/reader.conf ${DESTDIR}/etc ; fi
++cp /etc/libccid_Info.plist ${DESTDIR}/etc
++
++cp /lib/x86_64-linux-gnu/libpcsclite.so.1 ${DESTDIR}/lib
++cp /lib/x86_64-linux-gnu/libusb-1.0.so.0 ${DESTDIR}/lib
++cp /lib/x86_64-linux-gnu/libgcc_s.so.1 ${DESTDIR}/lib
++copy_exec /sbin/start-stop-daemon
+ 
+ # Install opensc commands and conf file
+ copy_exec /usr/bin/opensc-tool
