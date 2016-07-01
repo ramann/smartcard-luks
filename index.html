@@ -1,0 +1,127 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Smartcard LUKS by ramann</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/github-light.css">
+    <meta name="viewport" content="width=device-width">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Smartcard LUKS</h1>
+        <p>Forget that passphrase!</p>
+
+        <p class="view"><a href="https://github.com/ramann/smartcard-luks">View the Project on GitHub <small>ramann/smartcard-luks</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/ramann/smartcard-luks/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/ramann/smartcard-luks/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/ramann/smartcard-luks">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a id="smartcard-luks" class="anchor" href="#smartcard-luks" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Smartcard LUKS</h1>
+
+<h2>
+<a id="how-to-use-a-pkcs15-compliant-smartcard-to-unlock-a-luks-encrypted-root" class="anchor" href="#how-to-use-a-pkcs15-compliant-smartcard-to-unlock-a-luks-encrypted-root" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>How to use a PKCS#15-compliant smartcard to unlock a LUKS encrypted /root</h2>
+
+<p>This has been tested on Ubuntu 14.04 LTS with a Feitian PKI (FTCOS/PK-01C) smartcard and a generic USB smartcard reader. The Ubuntu instance has an unencrypted /boot partition and an encrypted /root partition. Essential info for unlocking the partition was found here: <a href="https://blog.g3rt.nl/luks-smartcard-or-token.html">https://blog.g3rt.nl/luks-smartcard-or-token.html</a>. After many VM restarts I was able to put together the patches for the initramfs hook and script and am successfully using this on several laptops.</p>
+
+<h3>
+<a id="the-general-steps" class="anchor" href="#the-general-steps" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>The general steps:</h3>
+
+<ul>
+<li>Erase and initialize card</li>
+<li>Create public/private key pair on smartcard</li>
+<li>Create key file and add it to a LUKS key slot</li>
+<li>Encrypt key file using public key from smartcard</li>
+<li>Modify initramfs to use smartcard to decrypt the encrypted keyfile</li>
+</ul>
+
+<h3>
+<a id="the-details" class="anchor" href="#the-details" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>The details:</h3>
+
+<ol>
+<li>
+<p>Install smartcard middleware</p>
+
+<p><code>sudo apt-get install pcscd opensc</code></p>
+</li>
+<li>
+<p>Erase smartcard</p>
+
+<p><code>pkcs15-init -E</code></p>
+</li>
+<li>
+<p>Initialize smartcard</p>
+
+<p><code>pkcs15-init --create-pkcs15 -p pkcs15+onepin --pin 1234 --puk 4321</code></p>
+</li>
+<li>
+<p>Create public/private key pair on smartcard</p>
+
+<p><code>pkcs15-init -G rsa/2048 -i 01 -a 01 -u decrypt --pin 1234</code></p>
+</li>
+<li>
+<p>Create a random key file and add it to a LUKS key slot</p>
+
+<p><code>sudo touch /root/rootkey</code></p>
+
+<p><code>sudo chmod 600 /root/rootkey</code></p>
+
+<p><code>sudo dd if=/dev/random of=/root/rootkey bs=1 count=245 #change to urandom if you can't wait</code></p>
+
+<p><code>sudo cryptsetup luksAddKey /dev/sda2 /root/rootkey</code></p>
+</li>
+<li>
+<p>Export the public key from smartcard</p>
+
+<p><code>pkcs15-tool --read-public-key 01 -o public_key_rsa2048.pem</code></p>
+</li>
+<li>
+<p>Encrypt key file using public key</p>
+
+<p><code>sudo openssl rsautl -encrypt -pubin -inkey public_key_rsa2048.pem  -in /root/rootkey -out /root/rootkey.enc</code></p>
+
+<p><code>sudo rm /root/rootkey</code></p>
+</li>
+<li>
+<p>Edit crypttab. This change sends the encrypted key file as a param to the keyscript</p>
+
+<p>This should be of the form: </p>
+
+<p><code>mapped_device_name source_block_device key_file luks,keyscript=decrypt_opensc</code></p>
+
+<p>For example:</p>
+
+<p><code>sda2_crypt UUID=d332ecc5-ce8b-4900-a04a-a79abd029d6d /root/rootkey.enc luks,keyscript=decrypt_opensc</code></p>
+</li>
+<li>
+<p>Apply patch to cryptopensc hook and regenerate initramfs</p>
+
+<p><code>sudo patch /usr/share/initramfs-tools/hooks/cryptopensc &lt; cryptopensc.patch</code></p>
+
+<p><code>sudo patch /usr/share/initramfs-tools/scripts/local-bottom/cryptopensc &lt; local-bottom-cryptopensc.patch</code></p>
+
+<p><code>sudo update-initramfs -u</code></p>
+</li>
+</ol>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/ramann">ramann</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
